@@ -1,0 +1,114 @@
+var Example = React.createClass({
+  
+  getInitialState: function() {
+    return {
+      category: "",
+      question: "",
+      answer: "",
+      userAnswer: "",
+      displayText: ""
+    }
+  },
+  
+  titleCase: function(str) {
+    str = str.toLowerCase();
+    var arr = str.split(" ");
+    for (var i = 0; i < arr.length; i++) {
+      arr[i] = arr[i].replace(arr[i][0], arr[i][0].toUpperCase()); 
+    }
+    str = arr.join(" ");
+  return str;
+},
+  
+  handleChange: function(event) {
+    this.setState({
+      userAnswer: event.target.value
+    });
+  },
+  
+  handleClick: function(event) {
+    this.setState({
+      displayText: "The correct answer is " + this.state.answer + "."
+    });
+  },
+  
+  handleSubmit: function(event){
+    if(this.state.userAnswer.toLowerCase() === this.state.answer.toLowerCase()){
+      this.setState({
+        displayText: "You are correct!"
+      });
+    }
+    else {
+      this.setState({
+        displayText: "Sorry, you are incorrect. Try again!"
+      });
+    }
+    event.preventDefault();
+  },
+  
+  componentDidMount: function() {
+    var _this = this;
+    this.serverRequest =
+      fetch('https://thingproxy.freeboard.io/fetch/http://www.jservice.io/api/random')
+      .then(function(response){
+        return response.json();
+    })
+      .then(function(res){
+      _this.setState({
+        answer: res[0].answer,
+        category: _this.titleCase(res[0].category.title),
+        question: res[0].question
+      });
+      console.log(res);
+    })
+    .catch(function(err){
+      console.log(err);
+    });
+  },
+  
+  getNewQuestion: function() {
+    var _this = this;
+    this.serverRequest =
+      fetch('https://thingproxy.freeboard.io/fetch/http://www.jservice.io/api/random')
+      .then(function(response){
+        return response.json();
+    })
+      .then(function(res){
+      _this.setState({
+        answer: res[0].answer,
+        category: _this.titleCase(res[0].category.title),
+        question: res[0].question,
+        userAnswer: "",
+        displayText: ""
+      });
+      console.log(res);
+    })
+    .catch(function(err){
+      console.log(err);
+    });
+  },
+  
+  componentWillUnmount: function() {
+    this.serverRequest.abort();
+  },
+  
+  render: function(){
+    return (
+      <div>
+        <form onSubmit = {this.handleSubmit}>
+          <h1><strong>Category:</strong> {this.state.category}</h1>
+          <h1><strong>Question:</strong> {this.state.question}</h1>
+          <input type = 'text' value = {this.state.userAnswer} onChange = {this.handleChange} placeholder = "Enter your answer here." />
+          <button type = 'submit'>Submit Answer!</button>
+          <button type = 'button' onClick = {this.handleClick}>I give up!</button>
+          <button type = 'button' onClick = {this.getNewQuestion}>Next Question</button>
+        </form>
+        <h1>{this.state.displayText}</h1>
+      </div>
+      ) 
+  }
+});
+
+ReactDOM.render(
+  <Example />, document.getElementById('app'));
+  
